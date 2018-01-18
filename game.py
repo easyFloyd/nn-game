@@ -31,12 +31,12 @@ class Game:
 	def init_goal(self):
 		self.goal = []
 		halfboard = int(self.board["width"] / 2)
-		self.goal.insert(0, [self.board["height"], halfboard - 1])
-		self.goal.insert(0, [self.board["height"], halfboard])
-		self.goal.insert(0, [self.board["height"], halfboard + 1])
-		self.goal.insert(0, [self.board["height"], halfboard + 2])
+		self.goal.append([halfboard - 1, self.board["height"]])
+		self.goal.append([halfboard, self.board["height"]])
+		self.goal.append([halfboard + 1, self.board["height"]])
+		self.goal.append([halfboard + 2, self.board["height"]])
 		if self.board["width"] % 2 != 0:
-			self.goal.insert(0, [self.board["height"], halfboard + 3])
+			self.goal.append([halfboard + 3, self.board["height"]])
 			
 	def step(self, direction):
 		# 0 - UP
@@ -90,7 +90,7 @@ class Game:
 		raise Exception("Game over")
 	
 	def get_status(self):
-		return self.result, self.stepcount, self.player, self.opponents
+		return self.result, self.stepcount, self.player, self.opponents, self.goal
 	
 if __name__ == "__main__":
 	game = Game()
