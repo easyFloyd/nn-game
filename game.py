@@ -1,7 +1,7 @@
 from random import randint
 
 class Game:
-	def __init__(self, board_width = 20, board_height = 20, opponents_number = 3, gui = False):
+	def __init__(self, board_width = 20, board_height = 20, opponents_number = 20, gui = False):
 		self.gui = gui
 		self.opponents_number = opponents_number
 		self.board = {'width': board_width, 'height': board_height}
