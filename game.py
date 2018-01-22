@@ -1,4 +1,20 @@
 from random import randint
+import curses
+
+# It's a very primitive game, where the starting situation is:
+# - on a board(board_width x board_height)
+# - a player (O) start the game on the baseline
+# - a goal area (4 unit) is on the finish line
+# - some (opponents_number) random opponent (X) on the board
+# In every turn 
+# - the player can take a step (Up, Down, Left or Right)
+# - then the opponents take a random step (at the case, when the 'hard' option is True, not truly random)
+# The goal is:
+# - the player have to reach the goal area in such a way, that it doesn't bump any opponent, and stay on the board
+#
+# Options:
+# - gui = True: Visualize the game on the screen
+# - hard = True: The opponents try to move in front of the player (It shouldn't be used, because in most cases it could end in an infinite game)
 
 class Game:
 	def __init__(self, board_width = 20, board_height = 20, opponents_number = 3, gui = False, hard = False):
@@ -19,6 +35,7 @@ class Game:
 		self.init_player()
 		self.init_opponents()
 		self.init_goal()
+		if self.gui: self.init_screen()
 		return self.get_status()
 		
 	def init_player(self):
@@ -45,31 +62,29 @@ class Game:
 		if self.board["width"] % 2 != 0:
 			self.goal.append([halfboard + 3, self.board["height"]])
 			
+
 	def step(self, direction):
 		# 0 - UP
 		# 1 - DOWN
 		# 2 - LEFT
 		# 3 - RIGHT
+		if self.result != -1: self.end_game()
 		self.stepcount += 1
 		self.move(self.player, direction)
 		self.check_result()
-		if self.result != -1: self.end_game()
+		if self.gui: self.render()
 		for opponent in self.opponents:
 			self.move_opponent(opponent)
 		return self.get_status()
 	
 	def move(self, player, direction):
 		if direction == 0:
-			#print("Move UP")
 			player[1] += 1
 		if direction == 1:
-			#print("Move DOWN")
 			player[1] -= 1
 		if direction == 2:
-			#print("Move LEFT")
 			player[0] -= 1
 		if direction == 3:
-			#print("Move RIGHT")
 			player[0] += 1
 	
 	def check_result(self):
@@ -81,6 +96,17 @@ class Game:
 			self.result = 0
 		if (self.result == -1 and self.player in self.goal):
 			self.result = 1
+			
+	def end_game(self):
+		msg = ""
+		if self.result == 1:
+			msg = "GOAL"
+		else:
+			msg = "FAIL"
+		raise Exception(msg)
+	
+	def get_status(self):
+		return self.result, self.stepcount, self.player, self.opponents, self.goal
 	
 	def move_opponent(self, opponent):
 		direction = self.get_opponent_direction(opponent)
@@ -141,32 +167,34 @@ class Game:
 		for v in self.vectors_and_keys:
 			if v[0] == vector: return v[1]
 	
-	def end_game(self):
-		msg = ""
-		if self.result == 1:
-			msg = "GOAL"
-		else:
-			msg = "FAIL"
-		raise Exception(msg)
-	
-	def get_status(self):
-		return self.result, self.stepcount, self.player, self.opponents, self.goal
+	def init_screen(self):
+		curses.initscr()
+		win = curses.newwin(self.board["width"] + 2, self.board["height"] + 2, 0, 0)
+		curses.curs_set(0)
+		win.nodelay(1)
+		win.timeout(300)
+		self.win = win
+		self.render()
+		
+	def render(self):
+		self.win.clear()
+		self.win.border(0)
+		self.win.addstr(0, 2, 'Step : ' + str(self.stepcount) + ' ')
+		if self.result == 0:
+			self.win.addstr(self.board["height"] + 1, 2, 'FAIL')
+		elif self.result == 1:
+			self.win.addstr(self.board["height"] + 1, 2, 'GOAL!!!')
+		self.win.addch(self.player[0], self.player[1], 'O')
+		for g in self.goal:
+			self.win.addch(g[0], g[1], 'G')
+		for op in self.opponents:
+			self.win.addch(op[0], op[1], 'X')
+		self.win.getch()
 	
 if __name__ == "__main__":
-	game = Game(hard = True)
+	game = Game(hard = False, gui = True)
 	result, stepcount, player, opponents, goal = game.start()
-	print("----------------")
-	print("START")
-	print(" - Player: ", player)
-	print(" - Opponents: ", opponents)
-	print(" - Goal: ", goal)
 	for _ in range(25):
-		direction = 0 #randint(0,3)
-		print("----------------")
-		print("Next move: ", direction)
-		result, stepcount, player, opponents, _ = game.step(direction)
-		print("Step: ", stepcount)
-		print(" - Result: ", result)
-		print(" - Player: ", player)
-		print(" - Opponents: ", opponents)
+		direction = randint(0,3)
+		game.step(direction)
 	
