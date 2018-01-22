@@ -9,7 +9,7 @@ from tflearn.layers.core import input_data, fully_connected
 from tflearn.layers.estimator import regression
 
 class GameNN:
-	def __init__(self, initial_games = 2000, test_games = 100, goal_steps = 100, lr = 1e-2, filename = 'game_nn.tflearn'):
+	def __init__(self, initial_games = 10000, test_games = 100, goal_steps = 100, lr = 1e-2, filename = 'game_nn.tflearn'):
 		self.initial_games = initial_games
 		self.test_games = test_games
 		self.goal_steps = goal_steps
@@ -22,10 +22,10 @@ class GameNN:
 			[[1, 0], 3]
 			]
 			
-	def initial_population(self):
+	def init_training_data(self):
 		training_data = []
 		for _ in range(self.initial_games):
-			game = Game()
+			game = Game(opponents_number = 60)
 			_, _, player, opponents, goal = game.start()
 			prev_observation = self.generate_observation(player, opponents, goal)
 			prev_goal_distance = self.get_goal_distance(player, goal)
@@ -99,11 +99,10 @@ class GameNN:
 		fail_count = 0
 		for _ in range(self.test_games):
 			game_memory = []
-			game = Game()
+			game = Game(opponents_number = 60)
 			_, stepcount, player, opponents, goal = game.start()
 			prev_observation = self.generate_observation(player, opponents, goal)
 			for _ in range(self.goal_steps):
-				# predictions = self.fake_predictions()
 				predictions = []
 				for action in range(0,4):
 					predictions.append(model.predict(np.append([action], prev_observation).reshape(-1, 6, 1)))
@@ -124,19 +123,36 @@ class GameNN:
 		print("Goal: ", goal_count)
 		print("Fail: ", fail_count)
 		print("Average steps: ", mean(steps_arr))
-		maxstep = np.argmax(np.array(g[1] for g in games))
-		game_memory = games[maxstep][2]
-		print("Result: ", games[maxstep][0])
-		for m in game_memory:
-			print("Step: ", m[0])
-			print(" - Player: ", m[1])
-			print(" - Opponents: ", ' '.join(map(str,m[2])))
-			print(" - Observations: ", m[3])
-			print(" - Predicted action: ", m[4])
+		for g in games:
+			if g[0] == 0:
+				game_memory = g[2][-1]
+				print(" - Player: ", game_memory[1])
+				print(" - Observations: ", game_memory[3])
+				print(" - Predicted action: ", game_memory[4])
+				
+	def get_prev_players(self, player, opponents):
+		prev_player = np.copy(np.array(player))
+		prev_opponents = np.copy(np.array(opponents))
+		return prev_player, prev_opponents
+					
+	def visualise_game(self, model):
+		game = Game(opponents_number = 60, gui = True, hard = False)
+		_, stepcount, player, opponents, goal = game.start()
+		prev_observation = self.generate_observation(player, opponents, goal)
+		for _ in range(self.goal_steps):
+			predictions = []
+			for action in range(0,4):
+				predictions.append(model.predict(np.append([action], prev_observation).reshape(-1, 6, 1)))
+			action = np.argmax(predictions)
+			result, stepcount, player, opponents, _ = game.step(action)
+			if result != -1:
+				break
+			else:
+				prev_observation = self.generate_observation(player, opponents, goal)
 					
 	def train(self):
 		print("Initialize training_data ...")
-		training_data = self.initial_population()
+		training_data = self.init_training_data()
 		print("Initialize model ...")
 		nn_model = self.model()
 		print("Start training...")
@@ -144,35 +160,16 @@ class GameNN:
 		print("Start testing ...")
 		self.test_model(nn_model)
 		
-	def get_prev_players(self, player, opponents):
-		prev_player = np.copy(np.array(player))
-		prev_opponents = np.copy(np.array(opponents))
-		return prev_player, prev_opponents
-	
-	def fake_predictions(self):
-		predictions = []
-		predictions.append(random.uniform(0.0, 1.0))
-		predictions.append(random.uniform(0.0, 1.0 - predictions[0]))
-		predictions.append(random.uniform(0.0, 1.0 - predictions[0] - predictions[1]))
-		predictions.append(1.0 - predictions[0] - predictions[1] - predictions[2])
-		random.shuffle(predictions)
-		return predictions
+	def visualise(self):
+		nn_model = self.model()
+		nn_model.load(self.filename)
+		self.visualise_game(nn_model)
+		
 		
 	def test(self):
-		for i in range(0,3):
-			print(i)
-		# observation = np.array([int(False), int(False), int(True), 2])
-		# action = randint(0,2) - 1
-		# orig = np.append([action], observation)
-		# print(orig)
-		# reshaped = orig.reshape(5,1)
-		# print(reshaped)
-		# training_data = self.initial_population()
-		# i = 0
-		# for t in training_data:
-			# if t[1] == 1 and i < 20:
-				# print(t)
-				# i+=1
+		nn_model = self.model()
+		nn_model.load(self.filename)
+		self.test_model(nn_model)
 		
 if __name__ == "__main__":
-	GameNN().train()
+	GameNN().test()
