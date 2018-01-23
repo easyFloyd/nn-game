@@ -1,21 +1,6 @@
 from random import randint
 import curses
 
-# It's a very primitive game, where the starting situation is:
-# - on a board(board_width x board_height)
-# - a player (O) start the game on the baseline
-# - a goal area (4 unit) is on the finish line
-# - some (opponents_number) random opponent (X) on the board
-# In every turn 
-# - the player can take a step (Up, Down, Left or Right)
-# - then the opponents take a random step (at the case, when the 'hard' option is True, not truly random)
-# The goal is:
-# - the player have to reach the goal area in such a way, that it doesn't bump any opponent, and stay on the board
-#
-# Options:
-# - gui = True: Visualize the game on the screen
-# - hard = True: The opponents try to move in front of the player (It shouldn't be used, because in most cases it could end in an infinite game)
-
 class Game:
 	def __init__(self, board_width = 20, board_height = 20, opponents_number = 3, gui = False, hard = False):
 		self.gui = gui
