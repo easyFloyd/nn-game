@@ -29,7 +29,7 @@ The goal is:
  - the player have to reach the goal area in such a way, that it doesn't bump any opponent, and stay on the board
 
 Options:
- - gui = True: Visualise the game on the screen
+ - gui = True: Visualise the game on the screen (use the curses library)
  - hard = True: The opponents try to move in front of the player 
    (It shouldn't be used, because in most cases it could end in an infinite game)
 
