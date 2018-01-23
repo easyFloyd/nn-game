@@ -44,6 +44,7 @@ It has three layers:
   - 5. is the goal on the right side (-1) of the player, or the left (+1), or front of it (0)
   - 6. the predicted direction (0: UP, 1: DOWN, 2: LEFT, 3: RIGHT)
  - Hidden layer: 36 neurons
+  - It uses ReLU activation function
  - Output layer: 1 neuron
   - Should the player go to that direction or not (
     -1: the player bump an obstacle and the game is over, 
