@@ -50,14 +50,14 @@ class GameNN:
 		return training_data
 		
 	def generate_observation(self, player, opponents, goal):
-		barrier_up = self.is_direction_block(player, opponents, self.vectors_and_keys[0][0])
-		barrier_down = self.is_direction_block(player, opponents, self.vectors_and_keys[1][0])
-		barrier_left = self.is_direction_block(player, opponents, self.vectors_and_keys[2][0])
-		barrier_right = self.is_direction_block(player, opponents, self.vectors_and_keys[3][0])
+		obstacle_up = self.is_direction_blocked(player, opponents, self.vectors_and_keys[0][0])
+		obstacle_down = self.is_direction_blocked(player, opponents, self.vectors_and_keys[1][0])
+		obstacle_left = self.is_direction_blocked(player, opponents, self.vectors_and_keys[2][0])
+		obstacle_right = self.is_direction_blocked(player, opponents, self.vectors_and_keys[3][0])
 		goal_angle = self.get_goal_angle(player, goal)
-		return [int(barrier_up), int(barrier_down), int(barrier_left), int(barrier_right), goal_angle]
+		return [int(obstacle_up), int(obstacle_down), int(obstacle_left), int(obstacle_right), goal_angle]
 		
-	def is_direction_block(self, player, opponents, direction):
+	def is_direction_blocked(self, player, opponents, direction):
 		point = [player[0] + direction[0], player[1] + direction[1]]
 		return point in opponents or point[0] == 0 or point[1] == 0 or point[0] == 21 or point[1] == 21
 		
